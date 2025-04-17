@@ -1,10 +1,21 @@
 {
   "cesVersion": "2.14.3",
-  "projectName": "my-expo-app",
+  "projectName": "meal-plan-newer",
   "packages": [
+    {
+      "name": "expo-router",
+      "type": "navigation",
+      "options": {
+        "type": "tabs"
+      }
+    },
     {
       "name": "nativewind",
       "type": "styling"
+    },
+    {
+      "name": "zustand",
+      "type": "state-management"
     }
   ],
   "flags": {
@@ -18,12 +29,12 @@
   },
   "packageManager": {
     "type": "npm",
-    "version": "11.2.0"
+    "version": "10.9.2"
   },
   "os": {
     "type": "Darwin",
     "platform": "darwin",
     "arch": "arm64",
-    "kernelVersion": "24.2.0"
+    "kernelVersion": "24.3.0"
   }
 }
