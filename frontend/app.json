@@ -1,18 +1,22 @@
 {
   "expo": {
-    "name": "my-expo-app",
-    "slug": "my-expo-app",
+    "name": "meal-plan-newer",
+    "slug": "meal-plan-newer",
     "version": "1.0.0",
+    "newArchEnabled": true,
 
+    "scheme": "meal-plan-newer",
     "web": {
+      "bundler": "metro",
+      "output": "static",
       "favicon": "./assets/favicon.png"
     },
-
+    "plugins": ["expo-router"],
     "experiments": {
+      "typedRoutes": true,
+
       "tsconfigPaths": true
     },
-
-    "plugins": [],
 
     "orientation": "portrait",
     "icon": "./assets/icon.png",
