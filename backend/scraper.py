@@ -2,30 +2,10 @@ import requests
 from bs4 import BeautifulSoup as Soup
 import re
 
+import utils
+
 SODEXO_LOGIN_URL = "https://bing.campuscardcenter.com/ch/login.html"
-ACCOUNT_URL = "https://bing.campuscardcenter.com/ch/accountList.html"
 LOGIN_HEADERS = {'Content-Type': 'application/x-www-form-urlencoded'}
-
-class Account:
-    #Transactions have not been implemented yet
-    def __init__(self, name: str = "", balance: float = 0, accountId: int = 0, transactions = None):
-        self.name = name
-        self.balance = balance
-        self.accountId = accountId
-        self.transactions = transactions
-
-    def getTransactionsLink(self):
-        return ACCOUNT_URL + "?id=" + str(self.accountId)
-
-    def __str__(self):
-        return f"{self.name} (id {self.accountId}) | balance: {self.balance}"
-    
-    #for getters/setters, use account.propertyName
-
-def kill():
-    print("Program terminated")
-    import sys
-    sys.exit()
 
 def trimToNumbers(str):
     return re.sub(r"[^\d.]", "", str)
@@ -36,12 +16,9 @@ def generatePayload(username, password, session):
     try:
         loginPage.raise_for_status()
     except requests.exceptions.HTTPError as httpErr:
-        print(f"HTTP error occurred\n{httpErr}")
-        kill()        
+        raise httpErr     
     except Exception as err:
-        print(f"An error occurred: {err}")
-        kill()
-
+        raise err
     formInfoValue = Soup(loginPage.text, "html.parser"
         ).find("input", attrs = {"name": "__ncforminfo"} #find form info tag
         ).get("value") #get form info
@@ -54,21 +31,9 @@ def new_session():
 def fetch_login_page(username: str, password: str, session):
     payload = generatePayload(username, password, session)
     response = session.post(SODEXO_LOGIN_URL, payload, headers=LOGIN_HEADERS)
-
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as httpErr:
-        if response.status_code == 400:
-            print(f"Unauthorized\n{httpErr}")
-        else:
-            print(f"HTTP error occurred\n{httpErr}")
-        kill()        
-    except Exception as err:
-        print(f"An error occurred: {err}")
-        kill()
+    response.raise_for_status()
     if response.text.find("Account Home") == -1:
-        print("Invalid login details")
-        kill()
+        raise Exception("Invalid login details")
         
     return response
 
@@ -90,27 +55,19 @@ def fetch_accounts_data(loginResponse, session):
             balanceNumber = float(trimToNumbers(tag3.text))
 
 
-            account = Account(name=tag1.text, balance=balanceNumber, accountId=int(trimToNumbers(tag2.text)))
+            account = utils.Account(name=tag1.text, balance=balanceNumber, accountId=int(trimToNumbers(tag2.text)))
             accounts.append(account)
         
     return accounts
 
-def load_account_transaction_history(account: Account, session):
+def load_account_transactions(account: utils.Account, session):
     response = session.post(account.getTransactionsLink())
+    response.raise_for_status()
 
-    try:
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as httpErr:
-        if response.status_code == 400:
-            print(f"Unauthorized\n{httpErr}")
-        else:
-            print(f"HTTP error occurred\n{httpErr}")
-        kill()        
-    except Exception as err:
-        print(f"An error occurred: {err}")
-        kill()
+    # todo: load transactions into account class, now that the webpage for transactions have loaded
+    # use utils.Transaction to save one transaction data, 
+    soup = Soup(response, "html.parser")
+    transactionsTable = soup.find("tbody")
 
-    #todo: load transactions into account class
-    
-def fetch_account_balance():
-    pass
+    for tag in transactionsTable.find_next_siblings("tr", attrs = {"id": "EntryRow"}):
+        pass
