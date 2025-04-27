@@ -19,6 +19,7 @@ CORS(app)  # Enable cross-origin requests
 # firebase_admin.initialize_app(cred)
 # db = firestore.client()
 
+# get-user-accounts should fetch from database, not directly call scraping
 @app.route("/api/get-user-accounts", methods=["POST"])
 def get_meal_data():
     # grab user/pass from request body and verify that they are nonempty
