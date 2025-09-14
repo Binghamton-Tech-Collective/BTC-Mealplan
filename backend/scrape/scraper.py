@@ -1,51 +1,23 @@
+import re
 import requests
 from utils import trimToNumbers
 from bs4 import BeautifulSoup as Soup
-from typing import Optional, List
+from typing import List
 
 from endpoints import account_url, sodexo_login_url
+from account import Account
 
-class Account:
-    #Transactions have not been implemented yet
-    def __init__(self, name: str = "", balance: float = 0, accountId: int = 0, transactions: Optional[List] = None):
-        self.name = name
-        self.balance = balance
-        self.accountId = accountId
-        self.transactions = transactions
-
-    def __str__(self) -> str:
-        return f"{self.name} (id {self.accountId}) | balance: {self.balance}"
-    
-    #for getters/setters, use account.propertyName
-
-# def generatePayload(username: str, password: str, session: requests.Session) -> str:
-#     loginPage = session.get(SODEXO_LOGIN_URL)
-# 
-#     try:
-#         loginPage.raise_for_status()
-#     except requests.exceptions.HTTPError as httpErr:
-#         print(f"HTTP error occurred\n{httpErr}")
-#         kill()        
-#     except Exception as err:
-#         print(f"An error occurred: {err}")
-#         kill()
-# 
-#     # formInfoValue = Soup(loginPage.text, "html.parser"
-#     #     ).find("input", attrs = {"name": "__ncforminfo"} #find form info tag
-#     #     ).get("value") #get form info
-# 
-#     return f""
- 
-def fetch_login_page(username: str, password: str, session: requests.Session) -> requests.Response:
+def login(username, password, session: requests.Session):
+    """Performs login and returns login page response"""
     response = session.post(sodexo_login_url(username, password))
 
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError as httpErr:
+    except requests.exceptions.HTTPError as http_err:
         if response.status_code == 400:
-            print(f"Unauthorized\n{httpErr}")
+            print(f"Unauthorized\n{http_err}")
         else:
-            print(f"HTTP error occurred\n{httpErr}")
+            print(f"HTTP error occurred\n{http_err}")
         raise        
     except Exception as err:
         print(f"An error occurred: {err}")
@@ -56,47 +28,78 @@ def fetch_login_page(username: str, password: str, session: requests.Session) ->
         
     return response
 
-def fetch_accounts_data(loginResponse: requests.Response, session: requests.Session) -> List[Account]:
-    main_page = Soup(loginResponse.text, "html.parser")
-    subTag = main_page.find("strong", string="Account # ")
-    tbody = subTag.parent.parent.parent
+def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
+    """Fetches a list of accounts"""
+    main_page = Soup(login_response.text, "html.parser")
+    sub_tag = main_page.find("strong", string="Account # ")
+    tbody = sub_tag.parent.parent.parent
 
     accounts = []
-    for childTag in tbody.find_all("tr", recursive=False):
-        linkTag = childTag.find("a")
-        if linkTag != None and linkTag != -1:
-            #allTags = list(childTag.children) # possible alternative
+    for child_tag in tbody.find_all("tr", recursive=False):
+        link_tag = child_tag.find("a")
+        if link_tag != None and link_tag != -1:
+            #all_tags = list(child_tag.children) # possible alternative
 
-            tag1 = childTag.find_next("td").find_next("td") #name
-            tag2 = tag1.find_next("td")                     #id
-            tag3 = tag2.find_next("td")                     #balance
+            tag1 = child_tag.find_next("td").find_next("td") #name
+            tag2 = tag1.find_next("td")                      #id
+            tag3 = tag2.find_next("td")                      #balance
             
-            balanceNumber = float(trimToNumbers(tag3.text))
+            balance_number = float(trimToNumbers(tag3.text))
 
-            account = Account(name=tag1.text, balance=balanceNumber, accountId=int(trimToNumbers(tag2.text)))
+            account = Account(name=tag1.text, balance=balance_number, account_id=int(trimToNumbers(tag2.text)))
             accounts.append(account)
         
     return accounts
 
-def load_account_transaction_history(account: Account, session: requests.Session) -> None:
-    response = session.post(account_url(str(account.accountId)))
+def fetch_transactions(account, session):
+    """Fetch transaction history for one account"""
+    # TODO: finish transaction scraping
+    response = session.post(account_url(str(account.account_id)))
 
     try:
         response.raise_for_status()
-    except requests.exceptions.HTTPError as httpErr:
+    except requests.exceptions.HTTPError as http_err:
         if response.status_code == 400:
-            print(f"Unauthorized\n{httpErr}")
+            print(f"Unauthorized\n{http_err}")
         else:
-            print(f"HTTP error occurred\n{httpErr}")
+            print(f"HTTP error occurred\n{http_err}")
         raise
     except Exception as err:
         print(f"An error occurred: {err}")
         raise
 
     #todo: load transactions into account class
-    
-def fetch_account_balance() -> None:
     pass
+
+def fetch_all_user_data(username, password, fetch_transactions=True):
+    """
+    Placeholder coordinator function:
+    - Login once
+    - Fetch accounts
+    - Optionally fetch transactions per account
+    - Return structured data
+    """
+    session = requests.Session()
+    result = {"accounts": [], "errors": []}
+
+    # 1. Login
+    try:
+        login_response = login(username, password, session)
+    except Exception as e:
+        result["errors"].append(f"Login failed: {e}")
+        return result
+
+    # 2. Fetch accounts
+    try:
+        accounts = fetch_accounts(login_response, session)
+        result["accounts"] = accounts
+    except Exception as e:
+        result["errors"].append(f"Failed to fetch accounts: {e}")
+        accounts = []
+
+    # Add other functions later
+
+    return result
 
 # test scraper functions
 import sys
@@ -108,8 +111,8 @@ if __name__ == "__main__":
     (username, passwd) = sys.argv[1:3]
     session = requests.Session()
 
-    accounts = fetch_accounts_data(fetch_login_page(username, passwd, session=session), session)
+    user_data = fetch_all_user_data(username, passwd)
 
-    print("Found accounts:")
-    for acc in accounts:
-        print(f"{acc.name} with balance {acc.balance}")
+    print(f"recv data {user_data}")
+
+
