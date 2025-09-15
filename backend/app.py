@@ -19,7 +19,7 @@ CORS(app)  # Enable cross-origin requests
 # firebase_admin.initialize_app(cred)
 # db = firestore.client()
 
-@app.route("/api/get-user-accounts", methods=["POST"])
+@app.route("/api/accounts", methods=["POST"])
 def get_meal_data():
     # grab user/pass from request body and verify that they are nonempty
     data = request.json
@@ -55,15 +55,15 @@ def get_meal_data():
 
 
 # endpoints for dummy data
-@app.route("/api/dummy/get-transactions", methods=["GET"])
+@app.route("/api/dummy/transactions", methods=["GET"])
 def get_user_transactions():
     return jsonify({"status": "success", "data": dummy_transactions})
 
-@app.route("/api/dummy/get-profile", methods=["GET"])
+@app.route("/api/dummy/profile", methods=["GET"])
 def get_user_profile():
     return jsonify({"status": "success", "data": dummy_user_data})
 
-@app.route("/api/dummy/get-accounts", methods=["GET"])
+@app.route("/api/dummy/accounts", methods=["GET"])
 def get_user_accounts():
     return jsonify({"status": "success", "data": dummy_accounts_data})
 
