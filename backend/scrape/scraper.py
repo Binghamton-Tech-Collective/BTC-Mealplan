@@ -4,7 +4,7 @@ from utils import trimToNumbers
 from bs4 import BeautifulSoup as Soup
 from typing import List
 
-from endpoints import account_url, sodexo_login_url
+from endpoints import account_url, sodexo_login_url, profile_url
 from account import Account
 
 def login(username, password, session: requests.Session):
@@ -25,6 +25,27 @@ def login(username, password, session: requests.Session):
     if response.text.find("Account Home") == -1:
         print(f"Invalid login details, (response code {response.status_code})")
         raise ValueError("Invalid login details")
+        
+    return response
+
+def fetch_profile(session: requests.Session):
+    response = session.get(profile_url())
+    
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 400:
+            print(f"Unauthorized\n{http_err}")
+        else:
+            print(f"HTTP error occurred\n{http_err}")
+        raise
+    except Exception as err:
+        print(f"An error occurred: {err}")
+        raise
+
+    if response.text.find("Personal Information") == -1:
+        print(f"Failed to reach site, bad cookies? (response code {response.status_code})")
+        raise
         
     return response
 
@@ -75,12 +96,13 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
     """
     Placeholder coordinator function:
     - Login once
+    - Fetch profile
     - Fetch accounts
     - Optionally fetch transactions per account
     - Return structured data
     """
     session = requests.Session()
-    result = {"accounts": [], "errors": []}
+    result = {"accounts": [], "profile": [], "errors": []}
 
     # 1. Login
     try:
@@ -89,7 +111,15 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
         result["errors"].append(f"Login failed: {e}")
         return result
 
-    # 2. Fetch accounts
+    # 2. Fetch profile
+    try:
+        profile = fetch_profile(login_response, session)
+        result["profile"] = profile
+    except Exception as e:
+        result["errors"].append(f"Failed to fetch profile: {e}")
+        profile = []
+
+    # 3. Fetch accounts
     try:
         accounts = fetch_accounts(login_response, session)
         result["accounts"] = accounts

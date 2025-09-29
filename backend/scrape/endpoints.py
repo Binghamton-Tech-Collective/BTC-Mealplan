@@ -5,3 +5,5 @@ def sodexo_login_url(username: str, password: str) -> str:
 def account_url(id: str): 
     return f"https://bing.campuscardcenter.com/ch/accountList.html?id={id}"
 
+def profile_url():
+    return f"https://bing.campuscardcenter.com/ch/my_profile/personal_info.html"
