@@ -6,6 +6,8 @@ from typing import List
 
 from endpoints import account_url, sodexo_login_url, profile_url
 from account import Account
+from card import Card
+from userdata import UserData
 
 def login(username, password, session: requests.Session):
     """Performs login and returns login page response"""
@@ -28,7 +30,8 @@ def login(username, password, session: requests.Session):
         
     return response
 
-def fetch_profile(session: requests.Session):
+#idea is for fetch_profile to populate a given userdata, and maybe the rest of the functions could follow this style. unsure whether to pass in an empty userdata to then put into a main userdata or just pass in a main userdata, but both seem viable.
+def fetch_profile(session: requests.Session, userdata: UserData) -> None:
     response = session.get(profile_url())
     
     try:
@@ -46,7 +49,8 @@ def fetch_profile(session: requests.Session):
     if response.text.find("Personal Information") == -1:
         print(f"Failed to reach site, bad cookies? (response code {response.status_code})")
         raise
-        
+    page = Soup(response.html, "html.parser")
+
     return response
 
 def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
@@ -72,7 +76,7 @@ def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
         
     return accounts
 
-def fetch_transactions(account, session):
+def fetch_transactions(account, session:requests.Session):
     """Fetch transaction history for one account"""
     # TODO: finish transaction scraping
     response = session.post(account_url(str(account.account_id)))
