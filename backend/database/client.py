@@ -7,10 +7,7 @@ load_dotenv()
 
 # Grab Supabase credentials
 SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_ANON_KEY")
+SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 
 # Create the Supabase client
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-
-res = supabase.table("users").select("*").execute()
-print(res)

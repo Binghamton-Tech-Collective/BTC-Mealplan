@@ -125,5 +125,7 @@ if __name__ == "__main__":
     user_data = fetch_all_user_data(username, passwd)
 
     print(f"recv data {user_data}")
+    for account in user_data["accounts"]:
+        print(account)
 
 
