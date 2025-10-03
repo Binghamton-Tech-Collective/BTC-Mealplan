@@ -1,29 +1,19 @@
-import '../global.css';
-
+import { PortalHost } from '@rn-primitives/portal';
 import { Stack } from 'expo-router';
-
-// import LoadingPage from './LoadingPage';
-
-// export default function LoadingScreen() {
-//   return <LoadingPage/>;
-// }
-
-// import LoginPage from './LoginPage';
-
-// export default function LoginScreen() {
-//   return <LoginPage/>;
-// }
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
+import '../global.css';
 
 export default function RootLayout() {
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-    </Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+        }}>
+        <Stack.Screen name="index" options={{ title: 'Login' }} />
+        <Stack.Screen name="home" options={{ title: 'Home' }} />
+      </Stack>
+      <PortalHost />
+    </>
   );
 }
