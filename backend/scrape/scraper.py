@@ -64,7 +64,6 @@ def fetch_profile(session: requests.Session) -> Profile:
         if infoType.find(":") == -1:
             continue
 
-        print("new tr of infotype", infoType)
         if (infoType.find("Name") != -1):
             for td_tag in tr_tag.find_all("td", string=True, resursive=False):
                 infoText = td_tag.get_text(strip=True)
@@ -86,7 +85,6 @@ def fetch_profile(session: requests.Session) -> Profile:
                 if (infoText.find("@") != -1):
                     profile.email = infoText
 
-    print(profile.__dict__)          
     return profile
 
 def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
