@@ -7,7 +7,7 @@ from typing import List
 from endpoints import account_url, sodexo_login_url, profile_url
 from account import Account
 from card import Card
-from userdata import UserData
+from profile import Profile
 
 def login(username, password, session: requests.Session):
     """Performs login and returns login page response"""
@@ -30,8 +30,8 @@ def login(username, password, session: requests.Session):
         
     return response
 
-#idea is for fetch_profile to populate a given userdata, and maybe the rest of the functions could follow this style. unsure whether to pass in an empty userdata to then put into a main userdata or just pass in a main userdata, but both seem viable.
-def fetch_profile(session: requests.Session, userdata: UserData) -> None:
+#idea is for fetch_profile to populate a given Profile, and maybe the rest of the functions could follow this style. unsure whether to pass in an empty Profile to then put into a main Profile or just pass in a main Profile, but both seem viable.
+def fetch_profile(session: requests.Session) -> Profile:
     response = session.get(profile_url())
     
     try:
@@ -49,9 +49,45 @@ def fetch_profile(session: requests.Session, userdata: UserData) -> None:
     if response.text.find("Personal Information") == -1:
         print(f"Failed to reach site, bad cookies? (response code {response.status_code})")
         raise
-    page = Soup(response.html, "html.parser")
+    page = Soup(response.text, "html.parser")
+    main_tag = page.find("div", class_="feature")
+    tbody_tag = main_tag.find("table")
 
-    return response
+    profile = Profile()
+    
+    for tr_tag in tbody_tag.find_all("tr", string="", recursive=False):
+        st = tr_tag.find("strong")
+        if st == None:
+            continue
+        
+        infoType = st.text
+        if infoType.find(":") == -1:
+            continue
+
+        print("new tr of infotype", infoType)
+        if (infoType.find("Name") != -1):
+            for td_tag in tr_tag.find_all("td", string=True, resursive=False):
+                infoText = td_tag.get_text(strip=True)
+                
+                if (infoText != "> Edit" and infoText != "Name :"):
+                    profile.name=infoText
+
+        elif (infoType.find("Phone") != -1):
+            td_tag = tr_tag.find("td")
+            infoText = td_tag.get_text(strip=True)
+            
+            if (infoText != ""):
+                profile.phone_number = int(infoText)
+
+        elif (infoType.find("Email") != -1):
+            for td_tag in tr_tag.find_all("td", string=True, resursive=False):
+                infoText = td_tag.get_text(strip=True)
+            
+                if (infoText.find("@") != -1):
+                    profile.email = infoText
+
+    print(profile.__dict__)          
+    return profile
 
 def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
     """Fetches a list of accounts"""
@@ -117,7 +153,7 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
 
     # 2. Fetch profile
     try:
-        profile = fetch_profile(login_response, session)
+        profile = fetch_profile(session)
         result["profile"] = profile
     except Exception as e:
         result["errors"].append(f"Failed to fetch profile: {e}")
