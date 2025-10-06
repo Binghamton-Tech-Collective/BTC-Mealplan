@@ -29,7 +29,7 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white ">
+    <SafeAreaView className="flex-1 bg-green-500">
       <View className="flex-1 justify-center px-4">
         <View className="gap-y-4">
           <Text>Email Address</Text>
