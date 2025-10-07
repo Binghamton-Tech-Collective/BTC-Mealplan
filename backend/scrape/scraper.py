@@ -101,31 +101,5 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
 
     return result
 
-# test scraper functions
-if __name__ == "__main__":
-    import sys
-    import os
-    from dotenv import load_dotenv
-
-    # Load environment variables from .env file
-    load_dotenv()
-    
-    username = os.getenv("DEV_SODEXO_USER")
-    passwd = os.getenv("DEV_SODEXO_PASS")
-
-    # override env if given
-    if len(sys.argv) >= 3:
-        username, passwd = sys.argv[1:3]
-    elif not username or not passwd:
-        print("Usage: scraper.py [username] [passwd]")
-        sys.exit(1)
-
-    session = requests.Session()
-
-    user_data = fetch_all_user_data(username, passwd)
-
-    print(f"recv data {user_data}")
-    for account in user_data["accounts"]:
-        print(account)
 
 
