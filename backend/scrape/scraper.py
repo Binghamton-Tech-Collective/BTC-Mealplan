@@ -76,7 +76,7 @@ def fetch_profile(session: requests.Session) -> Profile:
             infoText = td_tag.get_text(strip=True)
             
             if (infoText != ""):
-                profile.phone_number = int(infoText)
+                profile.phone_number = infoText
 
         elif (infoType.find("Email") != -1):
             for td_tag in tr_tag.find_all("td", string=True, resursive=False):
