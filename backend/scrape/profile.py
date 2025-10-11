@@ -8,4 +8,6 @@ class Profile:
         self.name = name
         self.phone_number = phone_number
         self.email = email
-
+    
+    def __str__(self) -> str:
+        return f"{self.name} - phone num: {self.phone_number} | email: {self.email}"
