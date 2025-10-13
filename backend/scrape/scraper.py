@@ -32,6 +32,7 @@ def login(username, password, session: requests.Session):
 
 #idea is for fetch_profile to populate a given Profile, and maybe the rest of the functions could follow this style. unsure whether to pass in an empty Profile to then put into a main Profile or just pass in a main Profile, but both seem viable.
 def fetch_profile(session: requests.Session) -> Profile:
+    "Fetches the user's profile"
     response = session.get(profile_url())
     
     try:
@@ -49,41 +50,45 @@ def fetch_profile(session: requests.Session) -> Profile:
     if response.text.find("Personal Information") == -1:
         print(f"Failed to reach site, bad cookies? (response code {response.status_code})")
         raise
+ 
+    #raw html is valid, info is being searched
     page = Soup(response.text, "html.parser")
     main_tag = page.find("div", class_="feature")
-    tbody_tag = main_tag.find("table")
+    tbody_tag = main_tag.find("table") #all desired data is stored in this table tag as a list of tr tags
 
     profile = Profile()
-    
+
     for tr_tag in tbody_tag.find_all("tr", string="", recursive=False):
         st = tr_tag.find("strong")
         if st == None:
-            continue
-        
+            continue #ignore empty tr tags
         infoType = st.text
+        
+        #all information is contained between ":"
         if infoType.find(":") == -1:
-            continue
-
+            continue 
+        
+        #look in the text between the strong tags. if it contains a keyword, then extract the tr_tag for information. each piece of information needs unique extracting methods to account for differences in the information being displayed
         if (infoType.find("Name") != -1):
             for td_tag in tr_tag.find_all("td", string=True, resursive=False):
                 infoText = td_tag.get_text(strip=True)
                 
-                if (infoText != "> Edit" and infoText != "Name :"):
-                    profile.name=infoText
+                if (infoText != "> Edit" and infoText != "Name :"): #there exists a strong tag with the "> Edit", so skip that
+                    profile.name=infoText # name
 
         elif (infoType.find("Phone") != -1):
             td_tag = tr_tag.find("td")
             infoText = td_tag.get_text(strip=True)
             
             if (infoText != ""):
-                profile.phone_number = infoText
+                profile.phone_number = infoText #phone number
 
         elif (infoType.find("Email") != -1):
             for td_tag in tr_tag.find_all("td", string=True, resursive=False):
                 infoText = td_tag.get_text(strip=True)
             
                 if (infoText.find("@") != -1):
-                    profile.email = infoText
+                    profile.email = infoText #email
 
     return profile
 
