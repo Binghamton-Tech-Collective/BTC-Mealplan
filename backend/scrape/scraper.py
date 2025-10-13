@@ -6,7 +6,7 @@ from typing import List
 
 from endpoints import account_url, sodexo_login_url, profile_url
 from account import Account
-from card import Card
+#from card import Card
 from profile import Profile
 
 def login(username, password, session: requests.Session):
