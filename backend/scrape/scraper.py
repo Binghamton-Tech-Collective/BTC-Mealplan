@@ -4,8 +4,10 @@ from utils import trimToNumbers
 from bs4 import BeautifulSoup as Soup
 from typing import List
 
-from endpoints import account_url, sodexo_login_url
+from endpoints import account_url, sodexo_login_url, profile_url
 from account import Account
+#from card import Card
+from profile import Profile
 
 def login(username, password, session: requests.Session):
     """Performs login and returns login page response"""
@@ -27,6 +29,68 @@ def login(username, password, session: requests.Session):
         raise ValueError("Invalid login details")
         
     return response
+
+#idea is for fetch_profile to populate a given Profile, and maybe the rest of the functions could follow this style. unsure whether to pass in an empty Profile to then put into a main Profile or just pass in a main Profile, but both seem viable.
+def fetch_profile(session: requests.Session) -> Profile:
+    "Fetches the user's profile"
+    response = session.get(profile_url())
+    
+    try:
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as http_err:
+        if response.status_code == 400:
+            print(f"Unauthorized\n{http_err}")
+        else:
+            print(f"HTTP error occurred\n{http_err}")
+        raise
+    except Exception as err:
+        print(f"An error occurred: {err}")
+        raise
+
+    if response.text.find("Personal Information") == -1:
+        print(f"Failed to reach site, bad cookies? (response code {response.status_code})")
+        raise
+ 
+    #raw html is valid, info is being searched
+    page = Soup(response.text, "html.parser")
+    main_tag = page.find("div", class_="feature")
+    tbody_tag = main_tag.find("table") #all desired data is stored in this table tag as a list of tr tags
+
+    profile = Profile()
+
+    for tr_tag in tbody_tag.find_all("tr", string="", recursive=False):
+        st = tr_tag.find("strong")
+        if st == None:
+            continue #ignore empty tr tags
+        infoType = st.text
+        
+        #all information is contained between ":"
+        if infoType.find(":") == -1:
+            continue 
+        
+        #look in the text between the strong tags. if it contains a keyword, then extract the tr_tag for information. each piece of information needs unique extracting methods to account for differences in the information being displayed
+        if (infoType.find("Name") != -1):
+            for td_tag in tr_tag.find_all("td", string=True, resursive=False):
+                infoText = td_tag.get_text(strip=True)
+                
+                if (infoText != "> Edit" and infoText != "Name :"): #there exists a strong tag with the "> Edit", so skip that
+                    profile.name=infoText # name
+
+        elif (infoType.find("Phone") != -1):
+            td_tag = tr_tag.find("td")
+            infoText = td_tag.get_text(strip=True)
+            
+            if (infoText != ""):
+                profile.phone_number = infoText #phone number
+
+        elif (infoType.find("Email") != -1):
+            for td_tag in tr_tag.find_all("td", string=True, resursive=False):
+                infoText = td_tag.get_text(strip=True)
+            
+                if (infoText.find("@") != -1):
+                    profile.email = infoText #email
+
+    return profile
 
 def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
     """Fetches a list of accounts"""
@@ -51,7 +115,7 @@ def fetch_accounts(login_response, session: requests.Session) -> List[Account]:
         
     return accounts
 
-def fetch_transactions(account, session):
+def fetch_transactions(account, session:requests.Session):
     """Fetch transaction history for one account"""
     # TODO: finish transaction scraping
     response = session.post(account_url(str(account.account_id)))
@@ -75,12 +139,13 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
     """
     Placeholder coordinator function:
     - Login once
+    - Fetch profile
     - Fetch accounts
     - Optionally fetch transactions per account
     - Return structured data
     """
     session = requests.Session()
-    result = {"accounts": [], "errors": []}
+    result = {"accounts": [], "profile": [], "errors": []}
 
     # 1. Login
     try:
@@ -89,7 +154,15 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
         result["errors"].append(f"Login failed: {e}")
         return result
 
-    # 2. Fetch accounts
+    # 2. Fetch profile
+    try:
+        profile = fetch_profile(session)
+        result["profile"] = profile
+    except Exception as e:
+        result["errors"].append(f"Failed to fetch profile: {e}")
+        profile = []
+
+    # 3. Fetch accounts
     try:
         accounts = fetch_accounts(login_response, session)
         result["accounts"] = accounts
