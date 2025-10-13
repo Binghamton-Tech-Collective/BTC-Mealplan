@@ -1,11 +1,5 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-
-import scraper  # You will create this module
-import app
-
-# import firebase_admin
-# from firebase_admin import credentials, firestore
 import scraper  # You will create this module
 from dummy_data import *
 
@@ -21,40 +15,43 @@ CORS(app)  # Enable cross-origin requests
 
 @app.route("/api/accounts", methods=["POST"])
 def get_meal_data():
-    # grab user/pass from request body and verify that they are nonempty
-    data = request.json
-    username = data.get("username")
-    password = data.get("password")
+    # TODO: This endpoint is currently deprecated
+    # # grab user/pass from request body and verify that they are nonempty
+    # data = request.json
+    # username = data.get("username")
+    # password = data.get("password")
 
-    if not username or not password:
-        return jsonify({"status": "error", "message": "Username and password required"}), 400
-
-
-    session = scraper.new_session()
-    try:
-        loginPage = scraper.fetch_login_page(username, password, session)
-        accounts = scraper.fetch_accounts_data(loginPage, session)
-
-        data = list()
-
-        # jsonify can't parse the Account class object, so we manually convert to dictionary instead
-        # depending on how future things are implemented, we should factor this function into a utils.py
-        for acc in accounts:
-            data.append({
-                "name" : acc.name,
-                "balance" : acc.balance,
-                "accountId" : acc.accountId,
-                "transactions" : acc.transactions,
-            })
-
-        return jsonify({"status": "success", "data": data})
-    except Exception as e:
-        # TODO: currently this will never trigger b/c scraper.py just kills the program altogether
-        # we should raise errors instead so that we can actually send that error message back to the endpoint user
-        return jsonify({"status": "error", "message": str(e)}), 500
+    # if not username or not password:
+    #     return jsonify({"status": "error", "message": "Username and password required"}), 400
 
 
-# endpoints for dummy data
+    # session = scraper.new_session()
+    # try:
+    #     loginPage = scraper.fetch_login_page(username, password, session)
+    #     accounts = scraper.fetch_accounts_data(loginPage, session)
+
+    #     data = list()
+
+    #     # jsonify can't parse the Account class object, so we manually convert to dictionary instead
+    #     # depending on how future things are implemented, we should factor this function into a utils.py
+    #     for acc in accounts:
+    #         data.append({
+    #             "name" : acc.name,
+    #             "balance" : acc.balance,
+    #             "accountId" : acc.accountId,
+    #             "transactions" : acc.transactions,
+    #         })
+
+    #     return jsonify({"status": "success", "data": data})
+    # except Exception as e:
+    #     # TODO: currently this will never trigger b/c scraper.py just kills the program altogether
+    #     # we should raise errors instead so that we can actually send that error message back to the endpoint user
+    #     return jsonify({"status": "error", "message": str(e)}), 500
+    pass
+
+
+# Task 1: reroute these endpoints to call the supabase dummy functions you implement
+# after you do that, you can delete dummy_data.py
 @app.route("/api/dummy/transactions", methods=["GET"])
 def get_user_transactions():
     return jsonify({"status": "success", "data": dummy_transactions})

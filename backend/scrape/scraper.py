@@ -174,18 +174,5 @@ def fetch_all_user_data(username, password, fetch_transactions=True):
 
     return result
 
-# test scraper functions
-import sys
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: scraper.py [username] [passwd]")
-        sys.exit(1)
-
-    (username, passwd) = sys.argv[1:3]
-    session = requests.Session()
-
-    user_data = fetch_all_user_data(username, passwd)
-
-    print(f"recv data {user_data}")
 
 
