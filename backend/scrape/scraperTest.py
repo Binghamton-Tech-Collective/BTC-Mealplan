@@ -28,6 +28,11 @@ def main():
         for error in user_data["errors"]:
             print(f"  - {error}")
 
+    if user_data["profile"]:
+        print(user_data["profile"])
+    else:
+        print("No user data found")
+
     if user_data["accounts"]:
         print(f"\nYou have {len(user_data['accounts'])} account(s):")
         print("-" * 50)
@@ -38,6 +43,7 @@ def main():
             print(f"  Balance: ${account.balance:.2f}\n")
     else:
         print("No accounts found.")
+
 
 if __name__ == "__main__":
     main()
