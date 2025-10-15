@@ -9,8 +9,8 @@ export default function HomeScreen() {
   const [info, setInfo] = useState('');
 
   async function getInfo() {
-    const email = await SecureStore.getItemAsync('userEmail');
-    const password = await SecureStore.getItemAsync('userPassword');
+    const email = await SecureStore.getItemAsync('email');
+    const password = await SecureStore.getItemAsync('password');
     setInfo(`Email: ${email}\nPassword: ${password}`);
   }
 
