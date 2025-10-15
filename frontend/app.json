@@ -14,11 +14,7 @@
       "expo-router",
       "expo-web-browser",
       "expo-font",
-      "expo-secure-store",
-      {
-        "configureAndroidBackup": true,
-        "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
-      }
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

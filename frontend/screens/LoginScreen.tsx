@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { useForm, Controller } from 'react-hook-form';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -24,8 +25,18 @@ export default function LoginScreen() {
     resolver: zodResolver(loginSchema),
   });
 
-  const onLogin = (data: LoginData) => {
-    router.replace('/home');
+  async function save(key: string, value: string) {
+    await SecureStore.setItemAsync(key, value);
+  }
+
+  const onLogin = async (data: LoginData) => {
+    try {
+      await save('email', data.email);
+      await save('password', data.password);
+      router.replace('/home');
+    } catch (error) {
+      console.log('Error saving user credentials: ', error);
+    }
   };
 
   return (
