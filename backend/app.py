@@ -1,6 +1,5 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
-import scraper  # You will create this module
 from dummy_data import *
 
 app = Flask(__name__)
