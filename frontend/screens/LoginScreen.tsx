@@ -9,6 +9,7 @@ import * as z from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Text } from '@/components/ui/text';
+import { SECURE_STORE_KEYS } from '@/constants/secureStoreKeys';
 
 const loginSchema = z.object({
   email: z
@@ -31,8 +32,8 @@ export default function LoginScreen() {
 
   const onLogin = async (data: LoginData) => {
     try {
-      await save('email', data.email);
-      await save('password', data.password);
+      await save(SECURE_STORE_KEYS.email, data.email);
+      await save(SECURE_STORE_KEYS.password, data.password);
       router.replace('/home');
     } catch (error) {
       console.log('Error saving user credentials: ', error);
