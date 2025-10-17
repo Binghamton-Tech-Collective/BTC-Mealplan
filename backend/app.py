@@ -2,6 +2,10 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 import scraper  # You will create this module
 from dummy_data import *
+from database.users import get_user_by_id
+from database.transactions import get_transactions_by_user_id
+from database.accounts import get_accounts_by_user_id
+import os
 
 app = Flask(__name__)
 CORS(app)  # Enable cross-origin requests
@@ -54,15 +58,42 @@ def get_meal_data():
 # after you do that, you can delete dummy_data.py
 @app.route("/api/dummy/transactions", methods=["GET"])
 def get_user_transactions():
-    return jsonify({"status": "success", "data": dummy_transactions})
+    try:
+        admin_id = os.getenv("ADMIN_ID")
+        if not admin_id:
+            return jsonify({"status": "error", "message": "ADMIN_ID not configured"})
+        
+        transactions = get_transactions_by_user_id(admin_id)
+        return jsonify({"status": "success", "data": transactions})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route("/api/dummy/profile", methods=["GET"])
 def get_user_profile():
-    return jsonify({"status": "success", "data": dummy_user_data})
+    try:
+        admin_id = os.getenv("ADMIN_ID")
+        if not admin_id:
+            return jsonify({"status": "error", "message": "ADMIN_ID not configured"})
+        
+        user = get_user_by_id(admin_id)
+        if not user:
+            return jsonify({"status": "error", "message": "User not found"})
+        
+        return jsonify({"status": "success", "data": user})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 @app.route("/api/dummy/accounts", methods=["GET"])
 def get_user_accounts():
-    return jsonify({"status": "success", "data": dummy_accounts_data})
+    try:
+        admin_id = os.getenv("ADMIN_ID")
+        if not admin_id:
+            return jsonify({"status": "error", "message": "ADMIN_ID not configured"})
+        
+        accounts = get_accounts_by_user_id(admin_id)
+        return jsonify({"status": "success", "data": accounts})
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)})
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
 # See users.py for more info
 from client import supabase
+from typing import List
 
-def get_dummy_accounts_data(user_id=None):
+def get_accounts_by_user_id(user_id: str) -> List[dict]:
     # no parameters, should just return all the accounts that belong to admin
 
     # no user_id is given

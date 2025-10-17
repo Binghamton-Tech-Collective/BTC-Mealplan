@@ -1,5 +1,5 @@
 from client import supabase
-import os
+from utils import remove_none_values
 
 # https://supabase.com/docs/reference/python/introduction
 # ^ this link is a great place to start to understand how to interact with Supabase in Python
@@ -12,17 +12,6 @@ def get_all_users():
         raise Exception(res.error.message)
     return res.data
 
-# Task 1: write dummy data reads for Supabase
-def get_dummy_user_data():
-    # no parameters, should just return the row in our table that refers to the admin
-
-    admin_id = os.getenv("ADMIN_ID") # set up in .env file
-
-    try:
-        res = supabase.table("users").select("*").eq("id", admin_id).single().execute()
-        return res.data
-    except Exception as e:
-        raise Exception(f"Error fetching admin user: {str(e)}")
 
 # Task 2: implement basic CRUD: Create, Read, Update, Delete
 def create_user(id=None, first_name=None, last_name=None, email=None, phone_number=None):
@@ -38,7 +27,7 @@ def create_user(id=None, first_name=None, last_name=None, email=None, phone_numb
     }
 
     # remove none values to allow supabase defaults
-    userData = {k: v for k, v in userData.items() if v is not None}
+    userData = remove_none_values(userData)
 
     try:
         res = supabase.table("users").insert(userData).execute()
@@ -71,7 +60,7 @@ def update_user(user_id=None, **kwargs):
         return None # No ID provided
     
     # filter out None values - only update fields that are explicitly provided
-    updateData = {k: v for k, v in kwargs.items() if v is not None}
+    updateData = remove_none_values(kwargs)
 
     if not updateData:
         return None # nothing to update
